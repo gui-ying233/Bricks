@@ -164,16 +164,21 @@ function Bricks:getElementsByClassName(classNames)
 			i)
 		local e = Bricks:new(r:sub(i)):__getElementByTagName(t)
 		if e then
-			local m = 0
+			local m = { [" "] = {} }
 			for _, v in ipairs(e.classList) do
 				for _, w in ipairs(split(classNames, " ")) do
-					if v == w then
-						m = m + 1
+					if v == w and not m[v] then
+						m[v] = true
+						m[" "][#m[" "] + 1] = v
 					end
-					if m == #split(classNames, " ") then
+					if #m[" "] == #split(classNames, " ") then
 						e.raw = self.raw
 						l[#l + 1] = e
+						break
 					end
+				end
+				if #m[" "] == #split(classNames, " ") then
+					break
 				end
 			end
 		end
