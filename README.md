@@ -40,7 +40,7 @@ print(dfn.outerHTML)
 
 输出：
 
-```shell
+```plaintext
 top     heading heading-1
 0 auto
 
