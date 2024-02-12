@@ -20,6 +20,27 @@ local function escape(s)
 	return s:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
 end
 
+local function split(s, sep)
+	local t = {}
+	if not sep or sep == "" then
+		for j = 1, #s do
+			t[j] = s:sub(j, j)
+		end
+		return t
+	end
+	local i = 1
+	while i <= #s do
+		local j = s:find(sep, i, true)
+		if not j then
+			t[#t + 1] = s:sub(i)
+			break
+		end
+		t[#t + 1] = s:sub(i, j - 1)
+		i = j + #sep
+	end
+	return t
+end
+
 local function isEmpty(s)
 	return not s or s:match("^%s*$")
 end
@@ -125,29 +146,40 @@ function Bricks:getElementById(id)
 	return nil
 end
 
-function Bricks:getElementsByClassName(className)
-	if isEmpty(className) then
+function Bricks:getElementsByClassName(classNames)
+	-- classNames: "a b c" or "a"
+	if isEmpty(classNames) then
 		return nil
 	elseif self.outerHTML then
 		return { self }
 	end
 	local l = {}
 	local r = self.innerHTML or self.raw
-	local i = r:find("<[^/][^>]-%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])[^%1]*" .. escape(className) .. "[^%1]*%1")
-	while i and i <= #r - #className - 16 do
-		local t = r:match("<([^/][^>]-)%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])[^%2]*" .. escape(className) .. "[^%2]*%2",
+	classNames = classNames:gsub("%s+", " ")
+	local f = split(escape(classNames), " ")[1]
+	local i = r:find("<[^/][^>]-%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])[^%1]-" .. f .. "[^%1]-[%s\"]")
+	while i and i <= #r - #classNames - 16 do
+		local t = r:match(
+			"<([^/][^>]-)%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])[^%2]-" .. f .. "[^%2]-%2",
 			i)
 		local e = Bricks:new(r:sub(i)):__getElementByTagName(t)
-		e.raw = self.raw
 		if e then
+			local m = 0
 			for _, v in ipairs(e.classList) do
-				if v == className then
-					l[#l + 1] = e
-					break
+				for _, w in ipairs(split(classNames, " ")) do
+					if v == w then
+						m = m + 1
+					end
+					if m == #split(classNames, " ") then
+						e.raw = self.raw
+						l[#l + 1] = e
+					end
 				end
 			end
 		end
-		i = r:find("<[^/][^>]-%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])%s*[^%1]*" .. escape(className) .. "[^%1]*%1", i + 1)
+		i = r:find(
+			"<[^/][^>]-%s+[^>]*[cC][lL][aA][sS][sS]%s*=(['\"])%s*[^%1]-" .. f .. "[^%1]-%1",
+			i + 1)
 	end
 	return l
 end
