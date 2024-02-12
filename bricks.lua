@@ -52,8 +52,7 @@ function Bricks:__getElementByTagName(tagName)
 		if r:sub(i, i + #tagName) == "<" .. tagName then
 			if _voidElems[tagName] then
 				self.tagName = tagName
-				self.void = true
-				self.index = s
+				self._index = s
 				self.outerHTML = r:sub(s, r:find(">", i))
 				self.innerHTML = ""
 				self.attributes = self:__getAttributes()
@@ -68,10 +67,9 @@ function Bricks:__getElementByTagName(tagName)
 		elseif r:sub(i, i + #tagName + 2) == "</" .. tagName .. ">" then
 			if b == 1 and s then
 				self.tagName = tagName
-				self.void = false
-				self.index = s
+				self._index = s
 				self.outerHTML = r:sub(s, i + #tagName + 2)
-				self.innerHTML = self.outerHTML:match("^<" .. tagName .. ".->(.*)</" .. tagName .. ">$", s)
+				self.innerHTML = self.outerHTML:match("^<" .. tagName .. ".->(.*)</" .. tagName .. ">$")
 				self.attributes = self:__getAttributes()
 				self.id = self:__getId()
 				self.classList = self:__getClassList()
@@ -91,8 +89,6 @@ end
 function Bricks:getElementsByTagName(tagName)
 	if isEmpty(tagName) then
 		return nil
-	elseif self.outerHTML then
-		return { self }
 	end
 	local l = {}
 	local r = self.innerHTML or self.raw
@@ -102,7 +98,7 @@ function Bricks:getElementsByTagName(tagName)
 		if not e then
 			break
 		end
-		i = i + e.index
+		i = i + e._index
 		e.raw = self.raw
 		l[#l + 1] = e
 	end
@@ -367,7 +363,7 @@ function Bricks:getParentElement()
 		return nil
 	end
 	local r = self.raw
-	local i, j = r:find(o, self.index, true)
+	local i, j = r:find(o, self._index, true)
 	local l = r:sub(1, i - 1)
 	local u = {}
 	local f = l:find("<[^/>]-[%s>]")
