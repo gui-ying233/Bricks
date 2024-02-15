@@ -56,9 +56,7 @@ top     heading heading-1
 
 **获取元素**：`document:getElementsByTagName()`、`document:getElementById()`、`document:getElementsByClassName()`
 
-**元素属性**：`ele.tagName`、`ele.outerHTML`、`ele.innerHTML`、`ele.attributes`、`ele.id`、`ele.classList`、`ele.className`、`ele.style`、`ele.dataset`、
-
-- children 和 parentElement 需要通过 `ele:getChildren()` 和 `ele:getParentElement()` 获得，如果已经获得则也可以使用 `ele.children`、`ele.parentElement` 调用。
+**元素属性**：`ele.tagName`、`ele.outerHTML`、`ele.innerHTML`、`ele.attributes`、`ele.id`、`ele.classList`、`ele.className`、`ele.style`、`ele.dataset`、`ele.children`、`ele.parentElement`
 
 ## 友情推荐
 
