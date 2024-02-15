@@ -247,10 +247,6 @@ function Bricks:getAttribute(name)
 	return self._attributes[name:lower()]
 end
 
-function Bricks:toString()
-	return self.outerHTML
-end
-
 function Bricks:__getId()
 	self._id = self:getAttribute("id")
 	return self._id
