@@ -17,7 +17,7 @@ local _voidElems = {
 	wbr = true,
 }
 
-local attr = {
+local _attr = {
 	attributes = true,
 	id = true,
 	classList = true,
@@ -67,9 +67,9 @@ function Bricks:new(raw)
 	end
 	setmetatable(o, {
 		__index = function(s, k)
-			if attr[k] and s["_" .. k] then
+			if _attr[k] and s["_" .. k] then
 				return s["_" .. k]
-			elseif attr[k] then
+			elseif _attr[k] then
 				return s["__get" .. k:sub(1, 1):upper() .. k:sub(2)](s)
 			else
 				return Bricks[k]
