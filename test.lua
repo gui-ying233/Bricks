@@ -1,6 +1,6 @@
 local b = require('bricks')
 
-local document = b:new([['<h1 id="top" class="heading heading-1">Hello!</h1>
+local document = b:new([[<h1 id="top" class="heading heading-1">Hello!</h1>
 <div style="margin: 0 auto;" class="container">
 	<p>
 		My name is <dfn>Bricks</dfn>, a module for parsing HTML.<br>
@@ -13,7 +13,7 @@ local document = b:new([['<h1 id="top" class="heading heading-1">Hello!</h1>
 		<li>Catgirl</li>
 		<li>...</li>
 	</ul>
-</div>']])
+</div>]])
 
 
 local h1 = document:getElementById('top')
