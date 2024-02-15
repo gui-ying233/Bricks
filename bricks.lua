@@ -16,6 +16,17 @@ local _voidElems = {
 	track = true,
 	wbr = true,
 }
+
+local attr = {
+	attributes = true,
+	id = true,
+	classList = true,
+	className = true,
+	style = true,
+	dataset = true,
+	children = true,
+	parentElement = true,
+}
 local function escape(s)
 	return s:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
 end
@@ -54,8 +65,17 @@ function Bricks:new(raw)
 	else
 		error("Uncaught TypeError: raw must be a string or a table")
 	end
-	setmetatable(o, self)
-	self.__index = self
+	setmetatable(o, {
+		__index = function(s, k)
+			if attr[k] and s["_" .. k] then
+				return s["_" .. k]
+			elseif attr[k] then
+				return s["__get" .. k:sub(1, 1):upper() .. k:sub(2)](s)
+			else
+				return Bricks[k]
+			end
+		end
+	})
 	return o
 end
 
@@ -76,12 +96,6 @@ function Bricks:__getElementByTagName(tagName)
 				self._index = s
 				self.outerHTML = r:sub(s, r:find(">", i))
 				self.innerHTML = ""
-				self.attributes = self:__getAttributes()
-				self.id = self:__getId()
-				self.classList = self:__getClassList()
-				self.className = self:__getClassName()
-				self.style = self:__getStyle()
-				self.dataset = self:__getDataset()
 				return self
 			end
 			b = b + 1
@@ -91,12 +105,6 @@ function Bricks:__getElementByTagName(tagName)
 				self._index = s
 				self.outerHTML = r:sub(s, i + #tagName + 2)
 				self.innerHTML = self.outerHTML:match("^<" .. tagName .. ".->(.*)</" .. tagName .. ">$")
-				self.attributes = self:__getAttributes()
-				self.id = self:__getId()
-				self.classList = self:__getClassList()
-				self.className = self:__getClassName()
-				self.style = self:__getStyle()
-				self.dataset = self:__getDataset()
 				return self
 			elseif b > 1 then
 				b = b - 1
@@ -147,7 +155,6 @@ function Bricks:getElementById(id)
 end
 
 function Bricks:getElementsByClassName(classNames)
-	-- classNames: "a b c" or "a"
 	if isEmpty(classNames) then
 		return nil
 	elseif self.outerHTML then
@@ -190,9 +197,6 @@ function Bricks:getElementsByClassName(classNames)
 end
 
 function Bricks:__getAttributes()
-	if self.attributes then
-		return self.attributes
-	end
 	local a = {}
 	local r = self.outerHTML:match("<" .. self.tagName .. "%s+(.-)>")
 	if not r then
@@ -230,16 +234,17 @@ function Bricks:__getAttributes()
 	elseif v ~= "" and not a[v:lower()] then
 		a[v:lower()] = true
 	end
+	self._attributes = a
 	return a
 end
 
 function Bricks:getAttribute(name)
 	if isEmpty(name) then
 		return nil
-	elseif not self.attributes then
-		self.attributes = self:__getAttributes()
+	elseif not self._attributes then
+		self._attributes = self:__getAttributes()
 	end
-	return self.attributes[name:lower()]
+	return self._attributes[name:lower()]
 end
 
 function Bricks:toString()
@@ -247,16 +252,11 @@ function Bricks:toString()
 end
 
 function Bricks:__getId()
-	if self.id then
-		return self.id
-	end
-	return self:getAttribute("id")
+	self._id = self:getAttribute("id")
+	return self._id
 end
 
 function Bricks:__getClassList()
-	if self.classList then
-		return self.classList
-	end
 	local c = self:getAttribute("class")
 	local l = {}
 	if not c then
@@ -279,22 +279,16 @@ function Bricks:__getClassList()
 	if s ~= "" then
 		l[#l + 1] = s
 	end
+	self._classList = l
 	return l
 end
 
 function Bricks:__getClassName()
-	if self.className then
-		return self.className
-	elseif not self.classList then
-		self.classList = self:__getClassList()
-	end
-	return table.concat(self.classList, " ")
+	self._className = table.concat(self.classList, " ")
+	return self._className
 end
 
 function Bricks:__getStyle()
-	if self.style then
-		return self.style
-	end
 	local s = self:getAttribute("style")
 	local c = {}
 	if not s then
@@ -339,27 +333,23 @@ function Bricks:__getStyle()
 		end
 		return table.concat(t, "; ") .. ";"
 	end)()
+	self._style = c
 	return c
 end
 
 function Bricks:__getDataset()
-	if self.dataset then
-		return self.dataset
-	end
 	local d = {}
-	local a = self.attributes
+	local a = self._attributes
 	for k, v in pairs(a) do
 		if k:match("^data%-") then
 			d[k:match("^data%-(.+)")] = v
 		end
 	end
+	self._dataset = d
 	return d
 end
 
-function Bricks:getChildren()
-	if self.children then
-		return self.children
-	end
+function Bricks:__getChildren()
 	local l = {}
 	local r = self.innerHTML or self.raw
 	local i = r:find("<[^/>]")
@@ -377,24 +367,23 @@ function Bricks:getChildren()
 			b = b - 1
 		else
 			if _voidElems[t:lower()] then
-				local e = Bricks:new(r:sub(s, r:find(">", i))):__getElementByTagName(t)
-				e.raw = self.raw
-				l[#l + 1] = e
-				s = r:find("<[^/>]", i)
+				if b == 0 then
+					local e = Bricks:new(r:sub(s, r:find(">", i))):__getElementByTagName(t)
+					e.raw = self.raw
+					l[#l + 1] = e
+					s = r:find("<[^/>]", i)
+				end
 			else
 				b = b + 1
 			end
 		end
 		i = r:find("<[^>]", i + 1)
 	end
-	self.children = l
+	self._children = l
 	return l
 end
 
-function Bricks:getParentElement()
-	if self.parentElement then
-		return self.parentElement
-	end
+function Bricks:__getParentElement()
 	local o = self.outerHTML
 	if not o then
 		return nil
@@ -436,7 +425,7 @@ function Bricks:getParentElement()
 	end
 	local e = Bricks:new(l:sub(u[#u][2]) .. o .. m:sub(1, f + #u[#u][1] + 2)):__getElementByTagName(u[#u][1])
 	e.raw = self.raw
-	self.parentElement = e
+	self._parentElement = e
 	return e
 end
 
