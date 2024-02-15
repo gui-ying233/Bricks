@@ -25,5 +25,5 @@ print(div.style.margin)
 local p = div:getElementsByTagName('p')[1]
 print(p.innerHTML)
 
-local dfn = p:getElementsByTagName('dfn')[1]
+local dfn = p.children[1]
 print(dfn.outerHTML)
