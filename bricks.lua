@@ -89,6 +89,7 @@ function Bricks:__getElementByTagName(tagName)
 	local i = r:find("<" .. tagName .. "[%s>]")
 	local s = i
 	local b = 0
+	local m
 	while i and i <= #r do
 		if r:sub(i, i + #tagName) == "<" .. tagName then
 			if _voidElems[tagName] then
@@ -98,6 +99,7 @@ function Bricks:__getElementByTagName(tagName)
 				self.innerHTML = ""
 				return self
 			end
+			m = r:sub(i + #tagName, i + #tagName)
 			b = b + 1
 		elseif r:sub(i, i + #tagName + 2) == "</" .. tagName .. ">" then
 			if b == 1 and s then
@@ -108,9 +110,15 @@ function Bricks:__getElementByTagName(tagName)
 				return self
 			elseif b > 1 then
 				b = b - 1
+				m = r:sub(i + #tagName + 2, i + #tagName + 2)
 			end
 		end
-		i = r:find("</?" .. tagName, i + 1)
+		if ("</" .. tagName):find(m, 1, true) then
+			i = i + #tagName
+		else
+			i = i + 1
+		end
+		i = r:find("</?" .. tagName, i)
 	end
 	return nil
 end
@@ -393,7 +401,7 @@ function Bricks:__getParentElement()
 		local t = l:match("<([^>]-)[%s>]", f)
 		if t:sub(1, 1) ~= "/" and not _voidElems[t:lower()] then
 			u[#u + 1] = { t, f }
-		elseif u[#u] == t:sub(2) then
+		elseif u[#u][1] == t:sub(2) then
 			u[#u] = nil
 		end
 		f = l:find("<[^>]-[%s>]", f + 1)
