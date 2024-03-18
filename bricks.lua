@@ -86,7 +86,11 @@ function Bricks:__getElementByTagName(tagName)
 		return nil
 	end
 	local r = self.innerHTML or self.raw
+	local c = r:find("<!--", 1, true)
 	local i = r:find("<" .. tagName .. "[%s>]")
+	if c and c < i then
+		i = r:find("<" .. tagName .. "[%s>]", r:find("-->", c, true) + 3)
+	end
 	local s = i
 	local b = 0
 	local m
@@ -118,7 +122,11 @@ function Bricks:__getElementByTagName(tagName)
 		else
 			i = i + 1
 		end
+		c = r:find("<!--", i, true)
 		i = r:find("</?" .. tagName, i)
+		if c and c < i then
+			i = r:find("</?" .. tagName, r:find("-->", c, true) + 3)
+		end
 	end
 	return nil
 end
