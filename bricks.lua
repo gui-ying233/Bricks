@@ -130,7 +130,7 @@ function Bricks:getElementsByTagName(tagName)
 	local l = {}
 	local r = self.innerHTML or self.raw
 	local i = 1
-	while i < #r - #tagName - 5 do
+	while i < #r - #tagName do
 		local e = Bricks:new(r:sub(i)):__getElementByTagName(tagName:lower())
 		if not e then
 			break
