@@ -101,7 +101,7 @@ function Bricks:__getElementByTagName(tagName)
 			end
 			m = r:sub(i + #tagName, i + #tagName)
 			b = b + 1
-		elseif r:sub(i, i + #tagName + 2) == "</" .. tagName .. ">" then
+		elseif r:sub(i, i + #tagName + 2):find("</" .. escape(tagName) .. "[%s>]") then
 			if b == 1 and s then
 				self.tagName = tagName
 				self._index = s
