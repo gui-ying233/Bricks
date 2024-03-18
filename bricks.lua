@@ -270,7 +270,7 @@ function Bricks:__getClassList()
 	local s = ""
 	while i <= #c do
 		local x = c:sub(i, i)
-		if x == " " then
+		if x:match("%s") then
 			if s ~= "" then
 				l[#l + 1] = s
 				s = ""
