@@ -97,7 +97,7 @@ function Bricks:__getElementByTagName(tagName)
 	while i and i <= #r do
 		if r:sub(i, i + #tagName) == "<" .. tagName then
 			if _voidElems[tagName] then
-				self.tagName = tagName
+				self.tagName = tagName:upper()
 				self._index = s
 				self.outerHTML = r:sub(s, r:find(">", i))
 				self.innerHTML = ""
@@ -107,7 +107,7 @@ function Bricks:__getElementByTagName(tagName)
 			b = b + 1
 		elseif r:sub(i, i + #tagName + 2):find("</" .. escape(tagName) .. "[%s>]") then
 			if b == 1 and s then
-				self.tagName = tagName
+				self.tagName = tagName:upper()
 				self._index = s
 				self.outerHTML = r:sub(s, i + #tagName + 2)
 				self.innerHTML = self.outerHTML:match("^<" .. tagName .. ".->(.*)</" .. tagName .. ">$")
@@ -214,7 +214,7 @@ end
 
 function Bricks:__getAttributes()
 	local a = {}
-	local r = self.outerHTML:match("<" .. self.tagName .. "%s+(.-)>")
+	local r = self.outerHTML:match("<" .. self.tagName:lower() .. "%s+(.-)>")
 	if not r then
 		return a
 	end
